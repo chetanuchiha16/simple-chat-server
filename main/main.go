@@ -27,12 +27,15 @@ func main() {
 }
 
 func handleClient(conn net.Conn) {
+	
+	fmt.Println("connected")
 	scanner := bufio.NewReader(conn)
 	message, err := scanner.ReadString('\n')
 	if err != nil {
 		println(err)
 	}
-	fmt.Println(message)
+	fmt.Printf("recieved message: %v", message)
+	conn.Write([]byte(fmt.Sprintf("sent message: %v", message)))
 	conn.Close()
 	
 }
