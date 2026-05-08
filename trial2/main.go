@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"sync"
 )
 
 func main() {
@@ -13,26 +14,29 @@ func main() {
 		fmt.Println(err)
 	}
 	// no_of_clients := 0
-	clients := make(chan []net.Conn)
+	// clients := make([]net.Conn, 0)
+	var clients []net.Conn // let it not be a pointer, pass by reference instead
+	var mu sync.Mutex
 
 	for {
 		conn, err := listener.Accept()
-		// clients = append(clients, conn)
-		clients <- append(<-clients, conn)
+		mu.Lock()
+		clients = append(clients, conn)
+		mu.Unlock()
 		if err != nil {
 			println(err)
 		}
 		// no_of_clients += 1
 
-		go handleClient(conn, clients)
+		go handleClient(conn, &clients, &mu)
 
 	}
 
 }
 
-func handleClient(conn net.Conn, clients chan []net.Conn) {
+func handleClient(conn net.Conn, clients *[]net.Conn, mu *sync.Mutex) {
 
-	fmt.Printf("connected %v\n", len(clients))
+	fmt.Printf("connected %v\n", len(*clients))
 	scanner := bufio.NewReader(conn)
 	for {
 
@@ -42,9 +46,11 @@ func handleClient(conn net.Conn, clients chan []net.Conn) {
 		}
 		fmt.Printf("recieved message: %v\n", message)
 		// conn.Write([]byte(fmt.Sprintf("sent message: %v", message)))
-		for i, client := range <-clients {
+		mu.Lock()
+		for i, client := range *clients {
 			client.Write([]byte(fmt.Sprintf("recieved message %v from another client %d\n", message, i)))
 		}
+		mu.Unlock()
 	}
 
 }
