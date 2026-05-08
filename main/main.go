@@ -13,22 +13,24 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	no_of_clients := 0
 	
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			println(err)
 		}
+		no_of_clients += 1
 
-		go handleClient(conn)
+		go handleClient(conn, no_of_clients)
 		
 	}
 
 }
 
-func handleClient(conn net.Conn) {
+func handleClient(conn net.Conn, no_of_clients int) {
 	
-	fmt.Println("connected")
+	fmt.Printf("connected %v\n", no_of_clients)
 	scanner := bufio.NewReader(conn)
 	message, err := scanner.ReadString('\n')
 	if err != nil {
