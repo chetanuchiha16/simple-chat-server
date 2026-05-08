@@ -35,8 +35,10 @@ func main() {
 }
 
 func handleClient(conn net.Conn, clients *[]net.Conn, mu *sync.Mutex) {
-
+	
+	mu.Lock()
 	fmt.Printf("connected %v\n", len(*clients))
+	mu.Unlock()
 	scanner := bufio.NewReader(conn)
 	for {
 
