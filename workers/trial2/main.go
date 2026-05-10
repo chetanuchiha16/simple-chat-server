@@ -35,15 +35,15 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for i, out := range outs {
+	for i, out := range outs {
+		wg.Add(1)
+		go func(out <-chan int) {
+			defer wg.Done()
 			for result := range out {
 				fmt.Printf("%vst: %v\n", i, result)
 			}
-		}
-	}()
+		}(out)
+	}
 	wg.Wait()
 
 }
