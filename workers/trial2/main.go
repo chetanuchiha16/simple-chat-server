@@ -37,12 +37,12 @@ func main() {
 
 	for i, out := range outs {
 		wg.Add(1)
-		go func(out <-chan int) {
+		go func(out <-chan int, id int) {
 			defer wg.Done()
 			for result := range out {
-				fmt.Printf("%vst: %v\n", i, result)
+				fmt.Printf("%vst: %v\n", id, result)
 			}
-		}(out)
+		}(out, i)
 	}
 	wg.Wait()
 
