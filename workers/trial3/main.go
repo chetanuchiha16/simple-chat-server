@@ -23,11 +23,14 @@ func fanOut(tasks <-chan int, workers int) []chan int {
 }
 
 func fanIn(outs []chan int, result chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
 	for _, out := range outs {
-		for o := range out {
-			result <- o
-		}
+		wg.Add(1)
+		go func(out chan int) {
+			defer wg.Done()
+			for o := range out {
+				result <- o
+			}
+		}(out)
 	}
 }
 func main() {
@@ -43,21 +46,15 @@ func main() {
 
 	var wg sync.WaitGroup
 	result := make(chan int)
-	go fanIn(outs, result, &wg)
-	go func() {
+	fanIn(outs, result, &wg)
+
+	go func() { // has to be in a go routine or else it will block and result channel is never consumed
 		wg.Wait()
 		close(result)
 	}()
-
-	// for i, out := range outs {
-	// 	wg.Add(1)
-	// 	go func(out <-chan int, id int) {
-	// 		defer wg.Done()
-	// 		for result := range out {
-	// 			fmt.Printf("%vst: %v\n", id, result)
-	// 		}
-	// 	}(out, i)
-	// }
-	// wg.Wait()
+	for res := range result { // let this block or else main will end while go routines are still running
+		fmt.Println(res)
+	}
+	fmt.Println("end")
 
 }
